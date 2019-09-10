@@ -1,0 +1,25 @@
+# Emacs backups
+*~
+
+# IntelliJ IDEA / PyCharm
+.idea/
+*.iml
+out/
+
+# Generated jsdoc directory
+doc-gen/
+
+# Log files
+*.log
+
+# tmp directories everywhere
+tmp/
+
+# Personal information
+personal-info/
+
+# Gradle installation
+.gradle/
+
+# Gradle build
+build/
