@@ -5,6 +5,8 @@
 .idea/
 *.iml
 out/
+bin/
+.project
 
 # Generated jsdoc directory
 doc-gen/
