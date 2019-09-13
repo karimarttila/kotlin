@@ -8,13 +8,25 @@ import simpleserver.util.L_EXIT
 import kotlin.test.assertEquals
 
 val packageName = "domainTest"
+val logger: Logger = LoggerFactory.getLogger(packageName)
 
 class TestSource {
     @Test
     fun getInfoTest() {
-        val logger: Logger = LoggerFactory.getLogger(packageName)
         logger.debug(L_ENTER)
-        assertEquals("TODO", getInfo())
+        assertEquals("index.html => Info in HTML format", getInfo())
         logger.debug(L_EXIT)
     }
+
+    @Test
+    fun getProductGroupsTest() {
+        logger.debug(L_ENTER)
+        val productGroups = getProductGroups()
+        assertEquals(2, productGroups.size)
+        assertEquals("Books", productGroups.get("1"));
+        assertEquals("Movies", productGroups.get("2"));
+        logger.debug(L_EXIT)
+    }
+
+
 }
