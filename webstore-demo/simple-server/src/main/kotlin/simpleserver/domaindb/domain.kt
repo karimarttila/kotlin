@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
 import java.io.File
-
+import java.util.ArrayList
 
 val packageName = "domaindb"
 val logger: Logger = LoggerFactory.getLogger(packageName)
@@ -19,13 +19,19 @@ fun getInfo(): String {
     return infoMsg
 }
 
-
-@Override
 fun getProductGroups(): Map<String, String> {
     logger.debug(L_ENTER)
     val rawData = readCsv("product-groups.csv")
     var ret = HashMap<String, String>()
     rawData.forEach { ret.put(it.get(0), it.get(1)) }
+    logger.debug(L_EXIT)
+    return ret
+}
+
+fun getProducts(pgId: Int): List<Array<String>> {
+    logger.debug(L_ENTER)
+    val fileName = "pg-${pgId}-products.csv"
+    val ret = readCsv(fileName)
     logger.debug(L_EXIT)
     return ret
 }
