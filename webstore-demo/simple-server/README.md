@@ -18,3 +18,9 @@ TODO: I remove this chapter when this exercise is done.
 # Introduction
 
 TODO
+
+
+# Using JDK10
+
+TODO: See ../../setenv.sh
+

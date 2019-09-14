@@ -1,0 +1,2 @@
+Before starting development, run:
+source ../../setenv.sh

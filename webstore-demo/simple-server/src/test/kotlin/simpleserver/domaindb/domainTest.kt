@@ -1,17 +1,18 @@
 package simpleserver.domaindb
 
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
-val packageName = "domainTest"
+
+const val packageName = "domainTest"
 val logger: Logger = LoggerFactory.getLogger(packageName)
 
-class TestSource {
+class DomainTest {
     @Test
     fun getInfoTest() {
         logger.debug(L_ENTER)
@@ -24,22 +25,28 @@ class TestSource {
         logger.debug(L_ENTER)
         val productGroups = getProductGroups()
         assertEquals(2, productGroups.size)
-        assertEquals("Books", productGroups.get("1"));
-        assertEquals("Movies", productGroups.get("2"));
+        assertEquals("Books", productGroups["1"])
+        assertEquals("Movies", productGroups["2"])
         logger.debug(L_EXIT)
     }
 
     @Test
     fun getProductsTest() {
         logger.debug(L_ENTER)
-        val books = getProducts(1)
-        assertNotNull(books)
-        assertEquals(35, books.size)
-        val movies = getProducts(2)
-        assertNotNull(movies)
-        assertEquals(169, movies.size)
-        val product = movies[48]
-        assertEquals("Once Upon a Time in the West", product[2]);
+        when (val books = getProducts(1)) {
+            is RawDataNotFound -> assertTrue(books is RawDataFound) // Fails for certain if not found.
+            is RawDataFound -> assertEquals(35, books.data.size)
+        }
+        when (val movies = getProducts(2)) {
+            is RawDataNotFound -> assertTrue(movies is RawDataFound)
+            is RawDataFound -> {
+                assertEquals(169, movies.data.size)
+                val product = movies.data[48]
+                assertEquals("Once Upon a Time in the West", product[2])
+            }
+        }
+        val noSuchProductGroup = getProducts(3)
+        assertTrue(noSuchProductGroup is RawDataNotFound)
         logger.debug(L_EXIT)
     }
 

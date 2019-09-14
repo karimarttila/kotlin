@@ -7,11 +7,15 @@ import org.slf4j.LoggerFactory
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
 import java.io.File
-import java.util.ArrayList
 
-val packageName = "domaindb"
+const val packageName = "domaindb"
 val logger: Logger = LoggerFactory.getLogger(packageName)
-val infoMsg = "index.html => Info in HTML format";
+const val infoMsg = "index.html => Info in HTML format"
+
+sealed class RawData
+data class RawDataFound(val data: List<Array<String>>): RawData()
+object RawDataNotFound: RawData()
+
 
 fun getInfo(): String {
     logger.debug(L_ENTER)
@@ -22,13 +26,15 @@ fun getInfo(): String {
 fun getProductGroups(): Map<String, String> {
     logger.debug(L_ENTER)
     val rawData = readCsv("product-groups.csv")
-    var ret = HashMap<String, String>()
-    rawData.forEach { ret.put(it.get(0), it.get(1)) }
+    val ret = HashMap<String, String>()
+    when(rawData) {
+        is RawDataFound -> rawData.data.forEach { ret[it[0]] = it[1] }
+    }
     logger.debug(L_EXIT)
     return ret
 }
 
-fun getProducts(pgId: Int): List<Array<String>> {
+fun getProducts(pgId: Int): RawData {
     logger.debug(L_ENTER)
     val fileName = "pg-${pgId}-products.csv"
     val ret = readCsv(fileName)
@@ -36,12 +42,25 @@ fun getProducts(pgId: Int): List<Array<String>> {
     return ret
 }
 
-private fun readCsv(fileName: String): List<Array<String>> {
+// TODO: JATKA TÄSTÄ...
+//fun getProduct(pgId: Int, pId: Int): List<Array<String>> {
+//    logger.debug(L_ENTER)
+//    val fileName = "pg-${pgId}-products.csv"
+//    try {
+//        val ret = readCsv(fileName)
+//    }
+//    logger.debug(L_EXIT)
+//    return ret
+//}
+
+
+private fun readCsv(fileName: String): RawData {
     logger.debug(L_ENTER)
-    val filePath = File(ClassLoader.getSystemClassLoader().getResource(fileName).file).toPath().toString()
+    val url = ClassLoader.getSystemClassLoader().getResource(fileName) ?: return RawDataNotFound
+    val filePath = File(url.file).toPath().toString()
     val parser = CSVParserBuilder().withSeparator('\t').build()
     val csvReader = CSVReaderBuilder(File(filePath).inputStream().bufferedReader()).withCSVParser(parser).build()
     val ret = csvReader.use { input -> input.readAll() }
     logger.debug(L_EXIT)
-    return ret
+    return RawDataFound(ret)
 }
