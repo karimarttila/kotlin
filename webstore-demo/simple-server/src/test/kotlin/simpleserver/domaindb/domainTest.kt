@@ -34,19 +34,34 @@ class DomainTest {
     fun getProductsTest() {
         logger.debug(L_ENTER)
         when (val books = getProducts(1)) {
-            is RawDataNotFound -> assertTrue(books is RawDataFound) // Fails for certain if not found.
-            is RawDataFound -> assertEquals(35, books.data.size)
+            is ProductGroupsNotFound -> assertTrue(books is ProductGroupsFound) // Fails for certain if not found.
+            is ProductGroupsFound -> assertEquals(35, books.data.size)
         }
         when (val movies = getProducts(2)) {
-            is RawDataNotFound -> assertTrue(movies is RawDataFound)
-            is RawDataFound -> {
+            is ProductGroupsNotFound -> assertTrue(movies is ProductGroupsFound)
+            is ProductGroupsFound -> {
                 assertEquals(169, movies.data.size)
                 val product = movies.data[48]
                 assertEquals("Once Upon a Time in the West", product[2])
             }
         }
         val noSuchProductGroup = getProducts(3)
-        assertTrue(noSuchProductGroup is RawDataNotFound)
+        assertTrue(noSuchProductGroup is ProductGroupsNotFound)
+        logger.debug(L_EXIT)
+    }
+
+    @Test
+    fun getProductTest() {
+        logger.debug(L_ENTER)
+        val testMovie = arrayOf("49", "2", "Once Upon a Time in the West", "14.4")
+        when (val movieFound = getProduct(2, 49)) {
+            is ProductNotFound -> assertTrue(movieFound is ProductFound) // Fails for certain if not found.
+            is ProductFound -> assertTrue(movieFound.data.contentEquals(testMovie))
+        }
+        val wrongProductGroupId = getProduct(5, 49)
+        assertTrue(wrongProductGroupId is ProductNotFound)
+        val wrongProductId = getProduct(2, 1000)
+        assertTrue(wrongProductId is ProductNotFound)
         logger.debug(L_EXIT)
     }
 
