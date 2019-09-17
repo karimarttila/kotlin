@@ -19,7 +19,6 @@ class DomainTest {
         val initialUsers = getUsers()
         assertEquals(3, initialUsers.size)
         val timoUser: Array<String>? = initialUsers["2"]
-        assertNotNull(timoUser)
-        timoUser?.let { assertTrue(it.contentEquals(testUser)) }
+        assertNotNull(timoUser?.let { assertTrue(it.contentEquals(testUser)) })
     }
 }
