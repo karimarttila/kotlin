@@ -34,19 +34,19 @@ class DomainTest {
     fun getProductsTest() {
         logger.debug(L_ENTER)
         when (val books = getProducts(1)) {
-            is ProductGroupsNotFound -> assertTrue(books is ProductGroupsFound) // Fails for certain if not found.
-            is ProductGroupsFound -> assertEquals(35, books.data.size)
+            is ProductsNotFound -> assertTrue(books is ProductsFound) // Fails for certain if not found.
+            is ProductsFound -> assertEquals(35, books.data.size)
         }
         when (val movies = getProducts(2)) {
-            is ProductGroupsNotFound -> assertTrue(movies is ProductGroupsFound)
-            is ProductGroupsFound -> {
+            is ProductsNotFound -> assertTrue(movies is ProductsFound)
+            is ProductsFound -> {
                 assertEquals(169, movies.data.size)
                 val product = movies.data[48]
                 assertEquals("Once Upon a Time in the West", product[2])
             }
         }
         val noSuchProductGroup = getProducts(3)
-        assertTrue(noSuchProductGroup is ProductGroupsNotFound)
+        assertTrue(noSuchProductGroup is ProductsNotFound)
         logger.debug(L_EXIT)
     }
 
