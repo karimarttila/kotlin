@@ -1,6 +1,7 @@
 package simpleserver.userdb
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -15,10 +16,11 @@ class DomainTest {
     @Test
     fun getUsersTest() {
         logger.debug(L_ENTER)
-        val testUser = arrayOf("timo.tillinen@foo.com", "Timo", "Tillinen", "EE5F0C6F4D191B58497F7DB5C5C9CAF8")
+        val testUser = User("timo.tillinen@foo.com", "Timo", "Tillinen", "EE5F0C6F4D191B58497F7DB5C5C9CAF8")
         val initialUsers = getUsers()
         assertEquals(3, initialUsers.size)
-        val timoUser: Array<String>? = initialUsers["2"]
-        assertNotNull(timoUser?.let { assertTrue(it.contentEquals(testUser)) })
+        val timoUser: User? = initialUsers["2"]
+        assertTrue(timoUser == testUser)
+
     }
 }

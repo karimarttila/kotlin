@@ -23,26 +23,34 @@ class DomainTest {
     @Test
     fun getProductGroupsTest() {
         logger.debug(L_ENTER)
-        val productGroups = getProductGroups()
-        assertEquals(2, productGroups.size)
-        assertEquals("Books", productGroups["1"])
-        assertEquals("Movies", productGroups["2"])
+        when (val productGroupsResult = getProductGroups()) {
+            // Fails for certain if not found.
+            is ProductGroupsNotFound -> assertTrue(productGroupsResult is ProductGroupsFound)
+            is ProductGroupsFound -> {
+                val pg = productGroupsResult.data
+                assertEquals(2, pg.size)
+                assertEquals("Books", pg["1"])
+                assertEquals("Movies", pg["2"])
+            }
+        }
         logger.debug(L_EXIT)
     }
 
     @Test
     fun getProductsTest() {
         logger.debug(L_ENTER)
-        when (val books = getProducts(1)) {
-            is ProductsNotFound -> assertTrue(books is ProductsFound) // Fails for certain if not found.
-            is ProductsFound -> assertEquals(35, books.data.size)
+        when (val booksResult = getProducts(1)) {
+            // Fails for certain if not found.
+            is ProductsNotFound -> assertTrue(booksResult is ProductsFound)
+            is ProductsFound -> assertEquals(35, booksResult.data.size)
         }
-        when (val movies = getProducts(2)) {
-            is ProductsNotFound -> assertTrue(movies is ProductsFound)
+        when (val moviesResult = getProducts(2)) {
+            is ProductsNotFound -> assertTrue(moviesResult is ProductsFound)
             is ProductsFound -> {
-                assertEquals(169, movies.data.size)
-                val product = movies.data[48]
-                assertEquals("Once Upon a Time in the West", product[2])
+                val movies = moviesResult.data
+                assertEquals(169, movies.size)
+                val product = movies[48]
+                assertEquals("Once Upon a Time in the West", product.title)
             }
         }
         val noSuchProductGroup = getProducts(3)

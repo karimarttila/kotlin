@@ -9,17 +9,24 @@ const val packageName = "domaindb"
 val logger: Logger = LoggerFactory.getLogger(packageName)
 const val infoMsg = "index.html => Info in HTML format"
 
-sealed class ProductGroups
-data class ProductGroupsFound(val data: List<Array<String>>) : ProductGroups()
-object ProductGroupsNotFound : ProductGroups()
 
-sealed class Products
-data class ProductsFound(val data: List<Array<String>>) : Products()
-object ProductsNotFound : Products()
+typealias ProductGroups = HashMap<String, String>
 
-sealed class Product
-data class ProductFound(val data: Array<String>) : Product()
-object ProductNotFound : Product()
+sealed class ProductGroupsResult
+data class ProductGroupsFound(val data: ProductGroups) : ProductGroupsResult()
+object ProductGroupsNotFound : ProductGroupsResult()
+
+data class Product(val pgId: Int, val pId: Int, val title: String, val price: Double,
+                   val authorOrDirector: String, val year: Int, val country: String,
+                   val genreOrLanguage: String)
+
+sealed class ProductsResult
+data class ProductsFound(val data: List<Product>) : ProductsResult()
+object ProductsNotFound : ProductsResult()
+
+sealed class ProductResult
+data class ProductFound(val data: Array<String>) : ProductResult()
+object ProductNotFound : ProductResult()
 
 
 fun getInfo(): String {
@@ -28,33 +35,45 @@ fun getInfo(): String {
     return infoMsg
 }
 
-fun getProductGroups(): Map<String, String> {
+fun getProductGroups(): ProductGroupsResult {
     logger.debug(L_ENTER)
-    val pgData = readCsv("product-groups.csv")
-    val ret = HashMap<String, String>()
-    when (pgData) {
-        is CsvDataFound -> pgData.data.forEach { ret[it[0]] = it[1] }
+    val fileName = "product-groups.csv"
+    val ret = when (val csvData = readCsv(fileName)) {
+        is CsvDataNotFound -> ProductGroupsNotFound
+        is CsvDataFound -> {
+            val pg = ProductGroups()
+            csvData.data.forEach { pg[it[0]] = it[1] }
+            ProductGroupsFound(pg)
+        }
     }
     logger.debug(L_EXIT)
     return ret
 }
 
-fun getProducts(pgId: Int): Products {
+fun getProducts(pgId: Int): ProductsResult {
     logger.debug(L_ENTER)
     val fileName = "pg-${pgId}-products.csv"
 
-    val ret = when(val csvData = readCsv(fileName)) {
+    val ret = when (val csvData = readCsv(fileName)) {
         is CsvDataNotFound -> ProductsNotFound
-        is CsvDataFound -> ProductsFound(csvData.data)
+        is CsvDataFound -> {
+            val products = arrayListOf<Product>()
+            csvData.data.forEach {
+                products.add(Product(it[0].toInt(), it[1].toInt(), it[2], it[3].toDouble(),
+                        it[4], it[5].toInt(), it[6], it[7] ))
+            }
+            ProductsFound(products)
+        }
     }
     logger.debug(L_EXIT)
     return ret
 }
 
-fun getProduct(pgId: Int, pId: Int): Product {
+// TODO: Change implementation as in getProducts *****************************************
+fun getProduct(pgId: Int, pId: Int): ProductResult {
     logger.debug(L_ENTER)
     val fileName = "pg-${pgId}-products.csv"
-    val ret = when(val pgData = readCsv(fileName)) {
+    val ret = when (val pgData = readCsv(fileName)) {
         is CsvDataNotFound -> ProductNotFound
         is CsvDataFound ->
             when (val p = pgData.data.firstOrNull { it[0].equals(pId.toString()) }) {
