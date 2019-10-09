@@ -25,7 +25,7 @@ data class ProductsFound(val data: List<Product>) : ProductsResult()
 object ProductsNotFound : ProductsResult()
 
 sealed class ProductResult
-data class ProductFound(val data: Array<String>) : ProductResult()
+data class ProductFound(val data: Product) : ProductResult()
 object ProductNotFound : ProductResult()
 
 
@@ -59,7 +59,7 @@ fun getProducts(pgId: Int): ProductsResult {
         is CsvDataFound -> {
             val products = arrayListOf<Product>()
             csvData.data.forEach {
-                products.add(Product(it[0].toInt(), it[1].toInt(), it[2], it[3].toDouble(),
+                products.add(Product(it[1].toInt(), it[0].toInt(), it[2], it[3].toDouble(),
                         it[4], it[5].toInt(), it[6], it[7] ))
             }
             ProductsFound(products)
@@ -69,18 +69,18 @@ fun getProducts(pgId: Int): ProductsResult {
     return ret
 }
 
-// TODO: Change implementation as in getProducts *****************************************
+
 fun getProduct(pgId: Int, pId: Int): ProductResult {
     logger.debug(L_ENTER)
-    val fileName = "pg-${pgId}-products.csv"
-    val ret = when (val pgData = readCsv(fileName)) {
-        is CsvDataNotFound -> ProductNotFound
-        is CsvDataFound ->
-            when (val p = pgData.data.firstOrNull { it[0].equals(pId.toString()) }) {
+    val ret = when (val products = getProducts(pgId)) {
+        is ProductsNotFound -> ProductNotFound
+        is ProductsFound -> {
+            when (val p = products.data.firstOrNull { it.pId == pId }) {
                 null -> ProductNotFound
-                p -> ProductFound(arrayOf(p[0], p[1], p[2], p[3]))
+                p -> ProductFound(p)
                 else -> ProductNotFound
             }
+        }
     }
     logger.debug(L_EXIT)
     return ret
