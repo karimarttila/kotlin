@@ -37,6 +37,7 @@ public fun readCsv(fileName: String): CsvData {
             val fromFile = when (url) {
                 null -> CsvDataNotFound
                 else -> {
+                    // NOTE: In real production code we should handle bad data here.
                     val filePath = File(url.file).toPath().toString()
                     val parser = CSVParserBuilder().withSeparator('\t').build()
                     val csvReader = CSVReaderBuilder(File(filePath).inputStream().bufferedReader()).withCSVParser(parser).build()
