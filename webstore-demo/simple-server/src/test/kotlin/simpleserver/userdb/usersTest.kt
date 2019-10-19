@@ -18,7 +18,6 @@ class DomainTest {
         logger.debug(L_ENTER)
         val testUser = User("timo.tillinen@foo.com", "Timo", "Tillinen", "EE5F0C6F4D191B58497F7DB5C5C9CAF8")
         val initialUsers = getUsers()
-        assertEquals(3, initialUsers.size)
         val timoUser: User? = initialUsers["2"]
         assertTrue(timoUser == testUser)
         logger.debug(L_EXIT)
@@ -34,4 +33,34 @@ class DomainTest {
         logger.debug(L_EXIT)
     }
 
+    @Test
+    fun addUserTest() {
+        logger.debug(L_ENTER)
+        val initialUsers = getUsers()
+        assertEquals(3, initialUsers.size)
+        // Adding new user with non-conflicting email.
+        val newUser = addUser("jamppa.jamppanen@foo.com", "Jamppa", "Jamppanen", "JampanSalasana");
+        when (newUser) {
+            is NewUser -> {
+                val currentUsers = getUsers()
+                assertEquals(4, currentUsers.size)
+                assertEquals("jamppa.jamppanen@foo.com", newUser.data.email)
+                assertEquals("Jamppa", newUser.data.firstName)
+                assertEquals("Jamppanen", newUser.data.LastName)
+            }
+            else -> assertTrue(false, "Didn't return NewUser")
+        }
+        // Trying to add the same email again.
+        val failedUser = addUser("jamppa.jamppanen@foo.com", "Jamppa", "Jamppanen", "JampanSalasana");
+        when (failedUser) {
+            is UserAddError -> {
+                val currentUsers = getUsers()
+                assertEquals(4, currentUsers.size)
+                assertEquals("Email already exists: " + "jamppa.jamppanen@foo.com", failedUser.msg)
+            }
+            else -> assertTrue(false, "Didn't return UserAddError")
+        }
+
+        logger.debug(L_EXIT)
+    }
 }

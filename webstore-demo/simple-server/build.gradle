@@ -6,6 +6,7 @@ buildscript {
     ext.hamcrest_version = '2.1'
     ext.logback_version = '1.2.3'
     ext.opencsv_version = '4.6'
+    ext.commonsCodecVersion = '1.11'
 
     repositories {
         mavenCentral()
@@ -27,6 +28,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "com.opencsv:opencsv:$opencsv_version"
     implementation "ch.qos.logback:logback-classic:$logback_version"
+    implementation("commons-codec:commons-codec:$commonsCodecVersion")
     // Tests.
     testCompile "org.junit.jupiter:junit-jupiter-api:$junit_version"
     testCompile "org.junit.jupiter:junit-jupiter-params:$junit_version"
@@ -45,6 +47,7 @@ test {
         logger.quiet "Executed test ${desc.name} [${desc.className}] with result: ${result.resultType}"
     }
 }
+
 
 compileKotlin { kotlinOptions { jvmTarget = "10" } }
 compileTestKotlin { kotlinOptions { jvmTarget = "10" } }
