@@ -63,4 +63,17 @@ class DomainTest {
 
         logger.debug(L_EXIT)
     }
+
+    @Test
+    fun checkCredentialsTest() {
+        logger.debug(L_ENTER)
+        val retOk = checkCredentials("kari.karttinen@foo.com", "Kari")
+        val retFailedPassword = checkCredentials("kari.karttinen@foo.com", "FAILED-PASSWORD");
+        val retEmailNotFound = checkCredentials("NOT.FOUND@foo.com", "Kari")
+        assertTrue(retOk);
+        assertFalse(retFailedPassword)
+        assertFalse(retEmailNotFound)
+        logger.debug(L_EXIT)
+    }
+
 }

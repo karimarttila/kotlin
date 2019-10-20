@@ -12,11 +12,8 @@ val logger: Logger = LoggerFactory.getLogger(packageName)
 data class User(val email: String, val firstName: String, val LastName: String, val password: String)
 
 sealed class UserResult
-data class UserFound(val data: User) : UserResult()
 data class NewUser(val data: User) : UserResult()
-object UserNotFound : UserResult()
 data class UserAddError(val msg: String) : UserResult()
-
 
 /** Proxy for performance reasons. */
 private val users = getInitialUsers()
@@ -44,12 +41,21 @@ private fun getInitialUsers(): ConcurrentHashMap<String, User> {
     return counter
 }
 
+/**
+ * Makes a copy of users for the client.
+ * @return copy of users
+ */
 fun getUsers(): Map<String, User> {
     logger.debug(L_ENTER)
     logger.debug(L_EXIT)
     return HashMap(users)
 }
 
+/**
+ * Checks if the email already exists in the database.
+ * @param email to check
+ * @return true if email already exists, false otherwise
+ */
 fun emailAlreadyExists(givenEmail: String): Boolean {
     logger.debug(L_ENTER)
     val user = users.elements().toList().firstOrNull { it.email == givenEmail}
@@ -58,6 +64,12 @@ fun emailAlreadyExists(givenEmail: String): Boolean {
     return ret
 }
 
+// Probably not necessary to synchronize since both users and counter are already synchronized.
+/**
+ * Adds a new user.
+ * First checks that the email is not already in use. If not in use, adds the new user to the database.
+ * @return If email already exists in the db, returns UserAddError, otherwise NewUser.
+ */
 @Synchronized fun addUser(email: String, firstName: String, lastName: String, password: String): UserResult {
     logger.debug(L_ENTER)
     val ret : UserResult = when(emailAlreadyExists(email)) {
@@ -73,6 +85,19 @@ fun emailAlreadyExists(givenEmail: String): Boolean {
     return ret
 }
 
-// TODO: CONTINUE HERE:
-//fun addUser
-//fun checkCredentials
+/**
+ * Checks if credentials exist in the database.
+ * @return true if credentials found, false otherwise.
+ * @throws Exception if something went wrong (to satisfy when else clause).
+ */
+fun checkCredentials(email: String, password: String): Boolean {
+    logger.debug(L_ENTER)
+    val ret = when (val user = (users.toList().firstOrNull { it.second.email == email })?.second) {
+        null -> false
+        is User -> user.password == DigestUtils.md5Hex(password).toUpperCase()
+        // Should not be here.
+        else -> throw Exception("Something went wrong while checking credentials with user email: " + email)
+    }
+    logger.debug(L_EXIT)
+    return ret
+}
