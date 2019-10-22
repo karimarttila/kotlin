@@ -17,7 +17,7 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import io.ktor.http.content.resources
+import io.ktor.http.content.default
 import io.ktor.http.content.static
 import io.ktor.jackson.jackson
 import io.ktor.locations.Location
@@ -26,7 +26,12 @@ import io.ktor.request.path
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+
+const val packageName = "webserver"
+val logger: Logger = LoggerFactory.getLogger(packageName)
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -71,22 +76,26 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
+        // http://localhost:8080/info
+        get("/info") {
+            call.respondText("{\"info\":\"index.html => Info in HTML format\"}\n", contentType = ContentType.Text.Plain)
+        }
         // http://localhost:8080/
-        get("/") {
-            call.respondText("Try: /info/index.html\n", contentType = ContentType.Text.Plain)
+        static("/") {
+            // When running under IDEA make sure that working directory is set to resources directory,
+            // e.g. /mnt/edata/aw/kari/github/kotlin/webstore-demo/simple-server/src/main/resources
+            default("static/index.html")
         }
-
-        // http://localhost:8080/info/index.html
-        static("/info") {
-            resources("static")
+        // http://localhost:8080/index.html
+        static("/index.html") {
+            default("static/index.html")
         }
-
     }
 }
 
-// TODO: NOT WORKING YET... CONTINUE HERE...
+    // TODO: NOT WORKING YET... CONTINUE HERE...
 // http://localhost:8080/sign-in
-@Location("/sign-in")
-class SignIn()
+    @Location("/sign-in")
+    class SignIn()
 
 
