@@ -25,16 +25,14 @@ val csvFiles = ConcurrentHashMap<String, CsvData>()
  * @param fileName Filename to read (and used as key in proxy).
  * @return CsvData entity
  */
-public fun readCsv(fileName: String): CsvData {
+fun readCsv(fileName: String): CsvData {
     logger.debug(L_ENTER)
-    val csvData = csvFiles.get(fileName)
-    val ret = when (csvData) {
+    val ret = when (val csvData = csvFiles[fileName]) {
         is CsvDataNotFound -> csvData
         is CsvDataFound -> csvData
         // Didn't find it in the proxy, let's read it from file.
         null -> {
-            val url = ClassLoader.getSystemClassLoader().getResource(fileName)
-            val fromFile = when (url) {
+            val fromFile = when (val url = ClassLoader.getSystemClassLoader().getResource(fileName)) {
                 null -> CsvDataNotFound
                 else -> {
                     // NOTE: In real production code we should handle bad data here.
@@ -46,7 +44,7 @@ public fun readCsv(fileName: String): CsvData {
 
             }
             // This filename read, add to proxy.
-            csvFiles.put(fileName, fromFile)
+            csvFiles[fileName] = fromFile
             fromFile
         }
     }

@@ -26,12 +26,10 @@ import io.ktor.request.path
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import simpleserver.util.L_ENTER
+import simpleserver.util.L_EXIT
 
-const val packageName = "webserver"
-val logger: Logger = LoggerFactory.getLogger(packageName)
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -76,6 +74,7 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
+        logger.debug(L_ENTER)
         // http://localhost:8080/info
         get("/info") {
             call.respondText("{\"info\":\"index.html => Info in HTML format\"}\n", contentType = ContentType.Text.Plain)
@@ -90,6 +89,7 @@ fun Application.module(testing: Boolean = false) {
         static("/index.html") {
             default("static/index.html")
         }
+        logger.debug(L_EXIT)
     }
 }
 

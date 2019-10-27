@@ -26,10 +26,10 @@ class DomainTest {
     @Test
     fun emailAlreadyExistsTest() {
         logger.debug(L_ENTER)
-        val retOk = emailAlreadyExists("kari.karttinen@foo.com");
-        val retNotOk = emailAlreadyExists("NOT.FOUND@foo.com");
-        assertTrue(retOk);
-        assertFalse(retNotOk);
+        val retOk = emailAlreadyExists("kari.karttinen@foo.com")
+        val retNotOk = emailAlreadyExists("NOT.FOUND@foo.com")
+        assertTrue(retOk)
+        assertFalse(retNotOk)
         logger.debug(L_EXIT)
     }
 
@@ -39,8 +39,7 @@ class DomainTest {
         val initialUsers = getUsers()
         val initialUsersSize = initialUsers.size
         // Adding new user with non-conflicting email.
-        val newUser = addUser("jamppa.jamppanen@foo.com", "Jamppa", "Jamppanen", "JampanSalasana");
-        when (newUser) {
+        when (val newUser = addUser("jamppa.jamppanen@foo.com", "Jamppa", "Jamppanen", "JampanSalasana")) {
             is NewUser -> {
                 val currentUsers = getUsers()
                 assertEquals(initialUsersSize + 1, currentUsers.size)
@@ -51,8 +50,7 @@ class DomainTest {
             else -> assertTrue(false, "Didn't return NewUser")
         }
         // Trying to add the same email again.
-        val failedUser = addUser("jamppa.jamppanen@foo.com", "Jamppa", "Jamppanen", "JampanSalasana");
-        when (failedUser) {
+        when (val failedUser = addUser("jamppa.jamppanen@foo.com", "Jamppa", "Jamppanen", "JampanSalasana")) {
             is UserAddError -> {
                 val currentUsers = getUsers()
                 assertEquals(initialUsersSize + 1, currentUsers.size)
@@ -68,9 +66,9 @@ class DomainTest {
     fun checkCredentialsTest() {
         logger.debug(L_ENTER)
         val retOk = checkCredentials("kari.karttinen@foo.com", "Kari")
-        val retFailedPassword = checkCredentials("kari.karttinen@foo.com", "FAILED-PASSWORD");
+        val retFailedPassword = checkCredentials("kari.karttinen@foo.com", "FAILED-PASSWORD")
         val retEmailNotFound = checkCredentials("NOT.FOUND@foo.com", "Kari")
-        assertTrue(retOk);
+        assertTrue(retOk)
         assertFalse(retFailedPassword)
         assertFalse(retEmailNotFound)
         logger.debug(L_EXIT)

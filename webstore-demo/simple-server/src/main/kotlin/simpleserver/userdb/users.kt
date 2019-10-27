@@ -53,7 +53,7 @@ fun getUsers(): Map<String, User> {
 
 /**
  * Checks if the email already exists in the database.
- * @param email to check
+ * @param givenEmail to check
  * @return true if email already exists, false otherwise
  */
 fun emailAlreadyExists(givenEmail: String): Boolean {
@@ -64,7 +64,9 @@ fun emailAlreadyExists(givenEmail: String): Boolean {
     return ret
 }
 
-// Probably not necessary to synchronize since both users and counter are already synchronized.
+// Let's synchronize this function just in case so that we call nextCounter and
+// put the new user in the same synchronized block even though the entities
+// are themselves synchronized.
 /**
  * Adds a new user.
  * First checks that the email is not already in use. If not in use, adds the new user to the database.
@@ -73,16 +75,20 @@ fun emailAlreadyExists(givenEmail: String): Boolean {
 @Synchronized fun addUser(email: String, firstName: String, lastName: String, password: String): UserResult {
     logger.debug(L_ENTER)
     val ret : UserResult = when(emailAlreadyExists(email)) {
-        true -> UserAddError("Email already exists: " + email)
+        true -> UserAddError("Email already exists: $email")
         else -> {
             val newUser = User(email, firstName, lastName, DigestUtils.md5Hex(password).toUpperCase())
             // Side effect: add new user to database.
-            users.put(nextCounter().toString(), newUser)
+            users[nextCounter().toString()] = newUser
             NewUser(newUser)
         }
     }
     logger.debug(L_EXIT)
     return ret
+}
+
+private fun getUser(email: String): User? {
+    return (users.toList().firstOrNull { it.second.email == email })?.second
 }
 
 /**
@@ -92,12 +98,7 @@ fun emailAlreadyExists(givenEmail: String): Boolean {
  */
 fun checkCredentials(email: String, password: String): Boolean {
     logger.debug(L_ENTER)
-    val ret = when (val user = (users.toList().firstOrNull { it.second.email == email })?.second) {
-        null -> false
-        is User -> user.password == DigestUtils.md5Hex(password).toUpperCase()
-        // Should not be here.
-        else -> throw Exception("Something went wrong while checking credentials with user email: " + email)
-    }
+    val ret = getUser(email)?.password == DigestUtils.md5Hex(password).toUpperCase()
     logger.debug(L_EXIT)
     return ret
 }
