@@ -18,7 +18,13 @@ val jvmTarget = "1.8"
 plugins {
     kotlin("jvm") version "1.3.50"
     java
+    application
     idea
+    id("com.github.johnrengelman.shadow") version "5.1.0"
+}
+
+application {
+  mainClassName = "io.ktor.server.netty.EngineMain"
 }
 
 repositories {
@@ -55,27 +61,39 @@ dependencies {
 
 }
 
-tasks.withType(Wrapper::class.java).configureEach {
-    gradleVersion = gradleVersion
-    distributionType = Wrapper.DistributionType.BIN
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+configure<IdeaModel> {
+    project {
+        languageLevel = IdeaLanguageLevel(JavaVersion.VERSION_11)
+    }
+    module {
+        isDownloadJavadoc = true
+        isDownloadSources = true
+    }
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = jvmTarget
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+tasks.withType(Wrapper::class.java).configureEach {
+    gradleVersion = gradleVersion
+    distributionType = Wrapper.DistributionType.BIN
 }
 
-configure<IdeaModel> {
-    project {
-        languageLevel = IdeaLanguageLevel(JavaVersion.VERSION_1_8)
-    }
-    module {
-        isDownloadJavadoc = true
-        isDownloadSources = true
+// Run as:
+// java -jar build/libs/simple-server-all.jar
+tasks.withType<Jar> {
+    manifest {
+        attributes(
+            mapOf(
+                "Main-Class" to application.mainClassName
+            )
+        )
     }
 }
 

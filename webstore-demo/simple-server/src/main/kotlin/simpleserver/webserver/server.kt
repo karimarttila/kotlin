@@ -18,6 +18,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.content.default
+import io.ktor.http.content.defaultResource
+import io.ktor.http.content.resource
 import io.ktor.http.content.static
 import io.ktor.jackson.jackson
 import io.ktor.locations.Location
@@ -29,6 +31,7 @@ import io.ktor.routing.routing
 import org.slf4j.event.Level
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
+import java.nio.file.Paths
 
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -75,19 +78,23 @@ fun Application.module(testing: Boolean = false) {
 
     routing {
         logger.debug(L_ENTER)
+
         // http://localhost:8080/info
         get("/info") {
             call.respondText("{\"info\":\"index.html => Info in HTML format\"}\n", contentType = ContentType.Text.Plain)
         }
         // http://localhost:8080/
         static("/") {
+            // ******** NOTE! *********
             // When running under IDEA make sure that working directory is set to resources directory,
             // e.g. /mnt/edata/aw/kari/github/kotlin/webstore-demo/simple-server/src/main/resources
-            default("static/index.html")
+            defaultResource("static/index.html")
+            //default("static/index.html")
         }
         // http://localhost:8080/index.html
         static("/index.html") {
-            default("static/index.html")
+            defaultResource("static/index.html")
+            //default("static/index.html")
         }
         logger.debug(L_EXIT)
     }

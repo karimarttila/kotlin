@@ -9,9 +9,8 @@
 # Version history:
 # - 2018-10-08: First version.
 
-# Let's start using OpenJDK since Oracle has commercialized its own JDK.
-# Let's try version 10 (version 11 had some issues with Gradle).
-export JAVA_HOME=/mnt/local/openjdk-10
+#export JAVA_HOME=/mnt/local/openjdk-10
+export JAVA_HOME=/mnt/local/openjdk-11
 echo "JAVA_HOME="$JAVA_HOME
 export GRADLE_HOME=/mnt/local/gradle-5.1.1
 echo "GRADLE_HOME="$GRADLE_HOME
