@@ -14,6 +14,7 @@ val logbackVersion = "1.2.3"
 val opencsvVersion = "4.6"
 val commonsCodecVersion = "1.11"
 val jvmTarget = "1.8"
+val jjwtVersion = "0.10.7"
 
 plugins {
     kotlin("jvm") version "1.3.50"
@@ -52,13 +53,15 @@ dependencies {
     implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging-jvm:$ktorVersion")
     implementation("com.natpryce:konfig:1.6.10.0")
+    implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
+    implementation("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
+    implementation("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
     // Tests.
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testCompile("org.hamcrest:hamcrest-library:$hamcrestVersion")
     testCompile("io.ktor:ktor-server-tests:$ktorVersion")
     runtime("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-
 }
 
 java {

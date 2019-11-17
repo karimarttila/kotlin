@@ -7,7 +7,7 @@ import simpleserver.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 const val packageName = "userdb"
-val logger: Logger = LoggerFactory.getLogger(packageName)
+private val logger: Logger = LoggerFactory.getLogger(packageName)
 
 data class User(val email: String, val firstName: String, val LastName: String, val password: String)
 

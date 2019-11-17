@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import simpleserver.util.*
 
 const val packageName = "domaindb"
-val logger: Logger = LoggerFactory.getLogger(packageName)
+private val logger: Logger = LoggerFactory.getLogger(packageName)
 const val infoMsg = "index.html => Info in HTML format"
 
 typealias ProductGroups = HashMap<String, String>

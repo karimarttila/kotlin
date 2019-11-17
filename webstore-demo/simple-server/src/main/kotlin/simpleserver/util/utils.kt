@@ -1,5 +1,9 @@
 package simpleserver.util
 
+import com.natpryce.konfig.ConfigurationProperties
+import com.natpryce.konfig.ConfigurationProperties.Companion.systemProperties
+import com.natpryce.konfig.EnvironmentVariables
+import com.natpryce.konfig.overriding
 import com.opencsv.CSVParserBuilder
 import com.opencsv.CSVReaderBuilder
 import org.slf4j.Logger
@@ -16,6 +20,11 @@ object CsvDataNotFound : CsvData()
 
 /** Proxy for performance reasons. */
 val csvFiles = ConcurrentHashMap<String, CsvData>()
+
+var ssEnv: String = System.getenv("SS_ENV") ?: "dev"
+val config = systemProperties() overriding
+             EnvironmentVariables() overriding
+             ConfigurationProperties.fromResource("application-${ssEnv}.properties")
 
 /**
  * Reads csv.
