@@ -33,7 +33,7 @@ fun createJsonWebToken(email: String): String {
         .setExpiration(expirationDate)
         .compact()
     logger.trace("jsonWebToken: $jws")
-    mySessions.add(jws)
+    mySessions.add(jws)  // Side effect.
     logger.debug(L_EXIT)
     return jws
 }
@@ -52,7 +52,7 @@ fun validateJsonWebToken(jwt: String): ValidatedJwtResult {
         } catch (expiredEx: ExpiredJwtException) {
             val msg = "Token is expired, removing it from my sessions and returning nil: ${expiredEx.message}"
             logger.warn(msg)
-            mySessions.remove(jwt)
+            mySessions.remove(jwt) // Side effect.
             ValidatedJwtNotFound(msg)
         } catch (otherEx: JwtException) {
             val msg = "Some error in session handling: ${otherEx.message}"
