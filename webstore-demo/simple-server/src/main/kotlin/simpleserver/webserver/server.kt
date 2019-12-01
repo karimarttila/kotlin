@@ -79,11 +79,11 @@ fun Application.module(testing: Boolean = false) {
     routing {
         logger.debug(L_ENTER)
 
-        // http://localhost:8080/info
+        // http://localhost:5065/info
         get("/info") {
             call.respondText("{\"info\":\"index.html => Info in HTML format\"}\n", contentType = ContentType.Text.Plain)
         }
-        // http://localhost:8080/
+        // http://localhost:5065/
         static("/") {
             // ******** NOTE! *********
             // When running under IDEA make sure that working directory is set to resources directory,
@@ -91,7 +91,7 @@ fun Application.module(testing: Boolean = false) {
             defaultResource("static/index.html")
             //default("static/index.html")
         }
-        // http://localhost:8080/index.html
+        // http://localhost:5065/index.html
         static("/index.html") {
             defaultResource("static/index.html")
             //default("static/index.html")
@@ -101,7 +101,7 @@ fun Application.module(testing: Boolean = false) {
 }
 
     // TODO: NOT WORKING YET... CONTINUE HERE...
-// http://localhost:8080/sign-in
+// http://localhost:5065/sign-in
     @Location("/sign-in")
     class SignIn()
 

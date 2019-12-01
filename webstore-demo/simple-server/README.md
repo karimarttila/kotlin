@@ -20,7 +20,11 @@ TODO: I remove this chapter when this exercise is done.
 TODO
 
 
-# Using JDK10
+# Configuration
+
+
+
+# Using JDK11
 
 TODO: See ../../setenv.sh
 

@@ -24,7 +24,7 @@ val csvFiles = ConcurrentHashMap<String, CsvData>()
 var ssEnv: String = System.getenv("SS_ENV") ?: "dev"
 val config = systemProperties() overriding
              EnvironmentVariables() overriding
-             ConfigurationProperties.fromResource("application-${ssEnv}.properties")
+             ConfigurationProperties.fromResource("application-${ssEnv}.conf")
 
 /**
  * Reads csv.
