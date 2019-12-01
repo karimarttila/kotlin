@@ -1,18 +1,16 @@
 package simpleserver.webserver
 
-import com.natpryce.konfig.Key
-import com.natpryce.konfig.intType
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
+import io.ktor.util.KtorExperimentalAPI
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
-import simpleserver.util.config
+import simpleserver.util.getIntProperty
 import java.util.*
 
-val jwtSecsKey = Key("json-web-token-expiration-as-seconds", intType)
 
 private val mySessions = Collections.synchronizedSet(HashSet<String>())
 private val key = Keys.secretKeyFor(SignatureAlgorithm.HS256)
@@ -21,9 +19,10 @@ sealed class ValidatedJwtResult
 data class ValidatedJwtFound(val data: String) : ValidatedJwtResult()
 data class ValidatedJwtNotFound(val msg: String) : ValidatedJwtResult()
 
+@KtorExperimentalAPI
 fun createJsonWebToken(email: String): String {
     logger.debug(L_ENTER)
-    val expSecs = config[jwtSecsKey]
+    val expSecs = getIntProperty("jwt.json-web-token-expiration-as-seconds")
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.SECOND, expSecs)
     val expirationDate = calendar.getTime()

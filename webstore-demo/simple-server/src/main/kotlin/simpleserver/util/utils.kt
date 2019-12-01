@@ -1,15 +1,17 @@
 package simpleserver.util
 
-import com.natpryce.konfig.ConfigurationProperties
-import com.natpryce.konfig.ConfigurationProperties.Companion.systemProperties
-import com.natpryce.konfig.EnvironmentVariables
-import com.natpryce.konfig.overriding
 import com.opencsv.CSVParserBuilder
 import com.opencsv.CSVReaderBuilder
+import com.typesafe.config.ConfigFactory
+import io.ktor.config.HoconApplicationConfig
+import io.ktor.util.KtorExperimentalAPI
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.lang.IllegalArgumentException
+import java.lang.IllegalStateException
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.NumberFormatException as NumberFormatException1
 
 const val packageName = "util"
 val logger: Logger = LoggerFactory.getLogger(packageName)
@@ -21,10 +23,19 @@ object CsvDataNotFound : CsvData()
 /** Proxy for performance reasons. */
 val csvFiles = ConcurrentHashMap<String, CsvData>()
 
-var ssEnv: String = System.getenv("SS_ENV") ?: "dev"
-val config = systemProperties() overriding
-             EnvironmentVariables() overriding
-             ConfigurationProperties.fromResource("application-${ssEnv}.conf")
+@KtorExperimentalAPI
+val config = HoconApplicationConfig(ConfigFactory.load())
+
+@KtorExperimentalAPI
+fun getIntProperty(key: String): Int {
+    val value = (config.propertyOrNull("jwt.json-web-token-expiration-as-seconds"))?.getString()
+    if (value == null) throw IllegalStateException("Couldn't find property with key: $key")
+    return try {
+        value.toInt()
+    } catch (e: NumberFormatException) {
+        throw IllegalStateException("The value for key: $key was not numeric: $value")
+    }
+}
 
 /**
  * Reads csv.

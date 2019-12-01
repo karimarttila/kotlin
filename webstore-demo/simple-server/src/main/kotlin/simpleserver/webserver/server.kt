@@ -28,6 +28,7 @@ import io.ktor.request.path
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
+import io.ktor.util.KtorExperimentalAPI
 import org.slf4j.event.Level
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
@@ -39,6 +40,7 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @Suppress("unused")
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
+
     install(Locations) {
     }
 

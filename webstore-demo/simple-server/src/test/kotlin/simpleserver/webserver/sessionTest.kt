@@ -1,5 +1,6 @@
 package simpleserver.webserver
 
+import io.ktor.util.KtorExperimentalAPI
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -13,6 +14,7 @@ val logger: Logger = LoggerFactory.getLogger(packageName)
 
 class SessionTest {
 
+    @KtorExperimentalAPI
     @Test
     fun jwtTest() {
         logger.debug(L_ENTER)
