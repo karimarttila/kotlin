@@ -17,9 +17,7 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import io.ktor.http.content.default
 import io.ktor.http.content.defaultResource
-import io.ktor.http.content.resource
 import io.ktor.http.content.static
 import io.ktor.jackson.jackson
 import io.ktor.locations.Location
@@ -28,11 +26,9 @@ import io.ktor.request.path
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
-import io.ktor.util.KtorExperimentalAPI
 import org.slf4j.event.Level
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
-import java.nio.file.Paths
 
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
