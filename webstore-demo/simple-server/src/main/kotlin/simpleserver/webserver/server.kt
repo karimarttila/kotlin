@@ -17,15 +17,19 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.Parameters
 import io.ktor.http.content.defaultResource
 import io.ktor.http.content.static
 import io.ktor.jackson.jackson
 import io.ktor.locations.Location
 import io.ktor.locations.Locations
 import io.ktor.request.path
+import io.ktor.request.receiveParameters
 import io.ktor.response.respondText
 import io.ktor.routing.get
+import io.ktor.routing.post
 import io.ktor.routing.routing
+import io.ktor.util.filter
 import org.slf4j.event.Level
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
@@ -33,9 +37,14 @@ import simpleserver.util.L_EXIT
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+private fun validateParameters(params: Parameters): Boolean {
+    return params.isEmpty()
+}
+
+
 @Suppress("unused")
 @kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
+fun Application.main() {
 
     install(Locations) {
     }
@@ -94,13 +103,21 @@ fun Application.module(testing: Boolean = false) {
             defaultResource("static/index.html")
             //default("static/index.html")
         }
+        post("/signin") {
+            val form = call.receiveParameters()
+            call.respondText("{\"info\":\"index.html => Info in HTML format\"}\n", contentType = ContentType.Text.Plain)
+        }
+
+
+
         logger.debug(L_EXIT)
+
     }
 }
 
-    // TODO: NOT WORKING YET... CONTINUE HERE...
+// TODO: NOT WORKING YET... CONTINUE HERE...
 // http://localhost:5065/sign-in
-    @Location("/sign-in")
-    class SignIn()
+@Location("/sign-in")
+class SignIn()
 
 

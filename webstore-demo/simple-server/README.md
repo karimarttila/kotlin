@@ -19,7 +19,7 @@ TODO: I remove this chapter when this exercise is done.
 
 This Kotlin version of my exercise server "Simple Server" is now the sixth language that I have used to implement the same server as an exercise (previous implementations: Clojure, Javascript, Java, Python and Go). In this blog post I document the implementation details and also some observations regarding Kotlin as a backend language and especially compare it to Java.
 
-# Kotlin vs Java vs Clojure
+# Kotlin vs. Java vs. Clojure
 
 I actually started to learn Kotlin already some four years ago. But after a short introduction I thought that "Kotlin is just Java done right" and decided to deep dive into Clojure (which actually was a good decision - Clojure is an excellent language and very different when compared to Java and Kotlin). But this autumn I spent with an interesting customer which had a team of extremely competent developers who were also quite language enthusiastic. They had implemented many microservices using different languages, one of the languages being Kotlin. I also had a chance to convert one old Java application into Kotlin. Therefore I had a good reason to learn Kotlin and I studied Kotlin in the evenings this autumn. 
 
@@ -52,7 +52,7 @@ Then you can use these sealed classes quite nicely to process various happy-day 
         }
     }
 ```
-This makes code pretty readable: "If you didn't find any products you cannot find an individual product. If you found products you can try to find an individual product." Because ```when``` is an expression you finally return some value to variable ```ret```.
+This makes code pretty readable: "If you didn't find any products you cannot find an individual product. If you found products you can try to find an individual product by pId field." Because ```when``` is an expression you finally return some value to variable ```ret```.
 
 When comparing Kotlin to Clojure my first impression is: "Kotlin is pretty good but compared to Clojure Kotlin is just Java done right". With this statement I mean that Clojure being a Lisp has all the power of Lisp including a real REPL and a real functional language with immutability by default, and excellent data oriented language structures and standard library to process data. If I can start a new project with very competent developers who already know Clojure or are willing to learn it my choice of language would definitely be Clojure since with competent developers Clojure is like a secret weapon when considering developer productivity. But if Clojure is not an option and I had to choose either Java or Kotlin I would choose Kotlin hands down. So, considering JVM development I'm starting to think that there is no going back to Java days. Sorry Java, you had your glory days but now it is time for new guys to continue JVM journey.  
 

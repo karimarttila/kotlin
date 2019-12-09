@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val gradleVersion = "5.6.3"
 val kotlinVersion = "1.3.50"
-val ktorVersion = "1.2.5"
+val ktorVersion = "1.2.6"
 val slf4jVersion = "1.7.25"
 val junitVersion = "5.5.2"
 val hamcrestVersion = "2.1"
@@ -60,6 +60,7 @@ dependencies {
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testCompile("org.hamcrest:hamcrest-library:$hamcrestVersion")
     testCompile("io.ktor:ktor-server-tests:$ktorVersion")
+    testCompile("io.ktor:ktor-server-test-host:$ktorVersion")
     runtime("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
 

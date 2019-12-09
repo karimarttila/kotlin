@@ -9,9 +9,6 @@ import org.slf4j.LoggerFactory
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
 
-const val packageName = "sessionTest"
-val logger: Logger = LoggerFactory.getLogger(packageName)
-
 class SessionTest {
 
     @KtorExperimentalAPI
