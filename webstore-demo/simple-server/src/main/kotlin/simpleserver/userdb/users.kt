@@ -16,8 +16,12 @@ data class NewUser(val data: User) : UserResult()
 data class UserAddError(val msg: String) : UserResult()
 
 /** Proxy for performance reasons. */
-private val users = getInitialUsers()
+private var users = getInitialUsers()
 private var counter = users.size
+
+@Synchronized public fun initializeUserDb(): Unit {
+    users = getInitialUsers()
+}
 
 private fun getInitialUsers(): ConcurrentHashMap<String, User> {
     logger.debug(L_ENTER)

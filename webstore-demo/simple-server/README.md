@@ -67,3 +67,9 @@ Configuration was a bit of a hassle. First I wanted to use Nat Pryce's excellent
 
 TODO: See ../../setenv.sh
 
+# Tests
+
+I used JUnit5 which was easy to configure in Kotlin's [build.gradle.kts](https://github.com/karimarttila/kotlin/blob/master/webstore-demo/simple-server/build.gradle.kts).
+
+For web server testing I used Ktor's [TestEngine](https://ktor.io/servers/testing.html). It's pretty fast since it doesn't create the actual web server but instead just hooks directly to internal Ktor mechanisms. See examples in [serverTest.kt](https://github.com/karimarttila/kotlin/blob/master/webstore-demo/simple-server/src/test/kotlin/simpleserver/webserver/serverTest.kt).
+ 

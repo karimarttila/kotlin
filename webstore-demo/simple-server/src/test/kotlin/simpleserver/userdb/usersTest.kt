@@ -1,6 +1,7 @@
 package simpleserver.userdb
 
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -12,6 +13,11 @@ const val packageName = "domainTest"
 val logger: Logger = LoggerFactory.getLogger(packageName)
 
 class DomainTest {
+
+    @BeforeEach
+    fun setup() {
+        initializeUserDb()
+    }
 
     @Test
     fun getUsersTest() {

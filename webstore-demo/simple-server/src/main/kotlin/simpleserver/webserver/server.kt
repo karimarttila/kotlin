@@ -1,6 +1,8 @@
 package simpleserver.webserver
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -14,31 +16,58 @@ import io.ktor.client.features.logging.Logging
 import io.ktor.features.CORS
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.Parameters
+import io.ktor.http.*
 import io.ktor.http.content.defaultResource
 import io.ktor.http.content.static
 import io.ktor.jackson.jackson
-import io.ktor.locations.Location
 import io.ktor.locations.Locations
 import io.ktor.request.path
-import io.ktor.request.receiveParameters
+import io.ktor.request.receive
+import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
-import io.ktor.util.filter
 import org.slf4j.event.Level
+import simpleserver.userdb.NewUser
+import simpleserver.userdb.UserAddError
+import simpleserver.userdb.addUser
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
 
+sealed class SigninParamsResult
+data class SigninParamsResultFound(val data: SigninPostData) : SigninParamsResult()
+object SigninParamsResultNotFound : SigninParamsResult()
+
+
+//data class SigninPostData(val email: String, val firstName: String, val lastName: String, val password: String)
+data class SigninPostData(
+    val email: String,
+    @JsonProperty("first-name") val firstName: String,
+    @JsonProperty("last-name") val lastName: String,
+    val password: String
+)
+
+
+private fun getStatusCode(response: Map<String, String>): HttpStatusCode {
+    return if (response["ret"] == "ok") HttpStatusCode.OK else HttpStatusCode.BadRequest
+}
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-private fun validateParameters(params: Parameters): Boolean {
-    return params.isEmpty()
+private fun handleSigning(params: SigninParamsResult): Map<String, String> {
+    logger.debug(L_ENTER)
+    val ret = when (params) {
+        is SigninParamsResultNotFound -> mapOf("ret" to "failed", "msg" to "Validation failed - some fields were empty")
+        is SigninParamsResultFound -> {
+            when (val newUser = addUser(params.data.email, params.data.firstName, params.data.lastName, params.data.password)) {
+                is NewUser -> mapOf("ret" to "ok", "email" to newUser.data.email)
+                is UserAddError -> mapOf("ret" to "failed", "msg" to newUser.msg)
+            }
+        }
+    }
+    logger.debug(L_EXIT)
+    return ret
 }
 
 
@@ -84,40 +113,41 @@ fun Application.main() {
     }
 
     routing {
-        logger.debug(L_ENTER)
-
         // http://localhost:5065/info
         get("/info") {
-            call.respondText("{\"info\":\"index.html => Info in HTML format\"}\n", contentType = ContentType.Text.Plain)
+            logger.debug(L_ENTER)
+            call.respondText("""{"info":"index.html => Info in HTML format"}""", contentType = ContentType.Text.Plain)
+            logger.debug(L_EXIT)
         }
         // http://localhost:5065/
         static("/") {
+            logger.debug(L_ENTER)
             // ******** NOTE! *********
             // When running under IDEA make sure that working directory is set to resources directory,
             // e.g. /mnt/edata/aw/kari/github/kotlin/webstore-demo/simple-server/src/main/resources
             defaultResource("static/index.html")
             //default("static/index.html")
+            logger.debug(L_EXIT)
         }
         // http://localhost:5065/index.html
         static("/index.html") {
+            logger.debug(L_ENTER)
             defaultResource("static/index.html")
-            //default("static/index.html")
+            logger.debug(L_EXIT)
         }
         post("/signin") {
-            val form = call.receiveParameters()
-            call.respondText("{\"info\":\"index.html => Info in HTML format\"}\n", contentType = ContentType.Text.Plain)
+            logger.debug(L_ENTER)
+            val params = try {
+                SigninParamsResultFound(call.receive<SigninPostData>())
+            } catch (e: MissingKotlinParameterException) {
+                SigninParamsResultNotFound
+            }
+            val response = handleSigning(params)
+            val statusCode = getStatusCode(response)
+            call.respond(statusCode, response)
+            logger.debug(L_EXIT)
         }
-
-
-
-        logger.debug(L_EXIT)
-
     }
 }
-
-// TODO: NOT WORKING YET... CONTINUE HERE...
-// http://localhost:5065/sign-in
-@Location("/sign-in")
-class SignIn()
 
 
