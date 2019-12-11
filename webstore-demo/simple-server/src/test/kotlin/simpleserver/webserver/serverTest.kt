@@ -19,12 +19,12 @@ import simpleserver.util.L_EXIT
 
 
 class ServerTest {
-    
+
     @BeforeEach
     fun setup() {
         initializeUserDb()
     }
-    
+
     @Test
     fun getInfoTest() {
         logger.debug(L_ENTER)
@@ -48,7 +48,16 @@ class ServerTest {
             }.apply {
                 assertEquals(400, response.status()?.value)
                 val mapper = ObjectMapper()
-                assertEquals(mapper.readTree(Gson().toJson(mapOf("ret" to "failed", "msg" to "Validation failed - some fields were empty"))), mapper.readTree(response.content))
+                assertEquals(
+                    mapper.readTree(
+                        Gson().toJson(
+                            mapOf(
+                                "ret" to "failed",
+                                "msg" to "Validation failed - some fields were empty"
+                            )
+                        )
+                    ), mapper.readTree(response.content)
+                )
             }
             logger.debug(L_EXIT)
         }
@@ -66,7 +75,16 @@ class ServerTest {
             }.apply {
                 assertEquals(200, response.status()?.value)
                 val mapper = ObjectMapper()
-                assertEquals(mapper.readTree(Gson().toJson(mapOf("ret" to "ok", "email" to "jamppa.jamppanen@foo.com"))), mapper.readTree(response.content))
+                assertEquals(
+                    mapper.readTree(
+                        Gson().toJson(
+                            mapOf(
+                                "ret" to "ok",
+                                "email" to "jamppa.jamppanen@foo.com"
+                            )
+                        )
+                    ), mapper.readTree(response.content)
+                )
             }
             // Second call fails.
             handleRequest(HttpMethod.Post, "/signin") {
@@ -77,7 +95,16 @@ class ServerTest {
                 assertEquals(400, response.status()?.value)
                 // TODO
                 val mapper = ObjectMapper()
-                assertEquals(mapper.readTree(Gson().toJson(mapOf("ret" to "failed", "msg" to "Email already exists: jamppa.jamppanen@foo.com"))), mapper.readTree(response.content))
+                assertEquals(
+                    mapper.readTree(
+                        Gson().toJson(
+                            mapOf(
+                                "ret" to "failed",
+                                "msg" to "Email already exists: jamppa.jamppanen@foo.com"
+                            )
+                        )
+                    ), mapper.readTree(response.content)
+                )
             }
 
             logger.debug(L_EXIT)
@@ -95,7 +122,60 @@ class ServerTest {
             }.apply {
                 assertEquals(200, response.status()?.value)
                 val mapper = ObjectMapper()
-                assertEquals(mapper.readTree(Gson().toJson(mapOf("ret" to "ok", "email" to "jamppa.jamppanen@foo.com"))), mapper.readTree(response.content))
+                assertEquals(
+                    mapper.readTree(
+                        Gson().toJson(
+                            mapOf(
+                                "ret" to "ok",
+                                "email" to "jamppa.jamppanen@foo.com"
+                            )
+                        )
+                    ), mapper.readTree(response.content)
+                )
+            }
+            logger.debug(L_EXIT)
+        }
+    }
+
+    @Test
+    fun postLoginFailedTest() {
+        logger.debug(L_ENTER)
+        withTestApplication(Application::main) {
+            handleRequest(HttpMethod.Post, "/login") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                setBody("""{"email":"kari.karttinen@foo.com", "password": "WRONG-PASSWORD"}""")
+            }.apply {
+                assertEquals(400, response.status()?.value)
+                val mapper = ObjectMapper()
+                assertEquals(
+                    mapper.readTree(
+                        Gson().toJson(
+                            mapOf(
+                                "ret" to "failed",
+                                "msg" to "Credentials are not good - either email or password is not correct"
+                            )
+                        )
+                    ), mapper.readTree(response.content)
+                )
+            }
+            logger.debug(L_EXIT)
+        }
+    }
+
+    @Test
+    fun postLoginOkTest() {
+        logger.debug(L_ENTER)
+        withTestApplication(Application::main) {
+            handleRequest(HttpMethod.Post, "/login") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                setBody("""{"email":"kari.karttinen@foo.com", "password": "Kari"}""")
+            }.apply {
+                assertEquals(200, response.status()?.value)
+                val resultMap = Gson().fromJson(response.content, Map::class.java)
+                assertEquals("ok", resultMap["ret"])
+                assertEquals("Credentials ok", resultMap["msg"])
             }
             logger.debug(L_EXIT)
         }

@@ -32,6 +32,7 @@ import org.slf4j.event.Level
 import simpleserver.userdb.NewUser
 import simpleserver.userdb.UserAddError
 import simpleserver.userdb.addUser
+import simpleserver.userdb.checkCredentials
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
 
@@ -39,12 +40,19 @@ sealed class SigninParamsResult
 data class SigninParamsResultFound(val data: SigninPostData) : SigninParamsResult()
 object SigninParamsResultNotFound : SigninParamsResult()
 
-
-//data class SigninPostData(val email: String, val firstName: String, val lastName: String, val password: String)
 data class SigninPostData(
     val email: String,
     @JsonProperty("first-name") val firstName: String,
     @JsonProperty("last-name") val lastName: String,
+    val password: String
+)
+
+sealed class LoginParamsResult
+data class LoginParamsResultFound(val data: LoginPostData) : LoginParamsResult()
+object LoginParamsResultNotFound : LoginParamsResult()
+
+data class LoginPostData(
+    val email: String,
     val password: String
 )
 
@@ -63,6 +71,24 @@ private fun handleSigning(params: SigninParamsResult): Map<String, String> {
             when (val newUser = addUser(params.data.email, params.data.firstName, params.data.lastName, params.data.password)) {
                 is NewUser -> mapOf("ret" to "ok", "email" to newUser.data.email)
                 is UserAddError -> mapOf("ret" to "failed", "msg" to newUser.msg)
+            }
+        }
+    }
+    logger.debug(L_EXIT)
+    return ret
+}
+
+private fun handleLogin(params: LoginParamsResult): Map<String, String> {
+    logger.debug(L_ENTER)
+    val ret = when (params) {
+        is LoginParamsResultNotFound -> mapOf("ret" to "failed", "msg" to "Validation failed - some fields were empty")
+        is LoginParamsResultFound -> {
+            when (val credentialsOk = checkCredentials(params.data.email, params.data.password)) {
+                false -> mapOf("ret" to "failed", "msg" to "Credentials are not good - either email or password is not correct")
+                true -> {
+                    val jwt = createJsonWebToken(params.data.email)
+                    mapOf("ret" to "ok", "msg" to "Credentials ok", "json-web-token" to jwt)
+                }
             }
         }
     }
@@ -147,6 +173,19 @@ fun Application.main() {
             call.respond(statusCode, response)
             logger.debug(L_EXIT)
         }
+        post("/login") {
+            logger.debug(L_ENTER)
+            val params = try {
+                LoginParamsResultFound(call.receive<LoginPostData>())
+            } catch (e: MissingKotlinParameterException) {
+                LoginParamsResultNotFound
+            }
+            val response = handleLogin(params)
+            val statusCode = getStatusCode(response)
+            call.respond(statusCode, response)
+            logger.debug(L_EXIT)
+        }
+
     }
 }
 
