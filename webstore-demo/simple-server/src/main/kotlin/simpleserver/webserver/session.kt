@@ -37,26 +37,40 @@ fun createJsonWebToken(email: String): String {
     return jws
 }
 
-fun validateJsonWebToken(jwt: String): ValidatedJwtResult {
+fun validateJsonWebToken(jwt: String?): ValidatedJwtResult {
     logger.debug(L_ENTER)
-    // Validata #1.
-    val found = mySessions.contains(jwt)
-    val ret = if (!found) {
-        val msg = "Token not found in my sessions: $jwt"
+    // Validation #0.
+    val ret = if (jwt == null) {
+        val msg = "No token"
         logger.warn(msg)
         ValidatedJwtNotFound(msg)
-    } else {
-        try {
-            ValidatedJwtFound(Jwts.parser().setSigningKey(key).parseClaimsJws(jwt).getBody().getSubject())
-        } catch (expiredEx: ExpiredJwtException) {
-            val msg = "Token is expired, removing it from my sessions and returning nil: ${expiredEx.message}"
+    }
+    else {
+        // Strip "Basic: " which is in real jwt but not in test cases.
+        val token = jwt.removePrefix("Basic ")
+        // ":NOT" is added by SimpleFrontend (not in tests)
+        val tmp = String(Base64.getDecoder().decode(token), Charsets.UTF_8)
+        val decodedToken = tmp.removeSuffix(":NOT")
+        // Validation #1.
+        val found = mySessions.contains(decodedToken)
+        if (!found) {
+            val msg = "Token not found in my sessions: $decodedToken"
             logger.warn(msg)
-            mySessions.remove(jwt) // Side effect.
             ValidatedJwtNotFound(msg)
-        } catch (otherEx: JwtException) {
-            val msg = "Some error in session handling: ${otherEx.message}"
-            logger.error(msg)
-            ValidatedJwtNotFound(msg)
+        } else {
+            // Validation #2.
+            try {
+                ValidatedJwtFound(Jwts.parser().setSigningKey(key).parseClaimsJws(decodedToken).getBody().getSubject())
+            } catch (expiredEx: ExpiredJwtException) {
+                val msg = "Token is expired, removing it from my sessions and returning nil: ${expiredEx.message}"
+                logger.warn(msg)
+                mySessions.remove(decodedToken) // Side effect.
+                ValidatedJwtNotFound(msg)
+            } catch (otherEx: JwtException) {
+                val msg = "Some error in session handling: ${otherEx.message}"
+                logger.error(msg)
+                ValidatedJwtNotFound(msg)
+            }
         }
     }
     logger.debug(L_EXIT)

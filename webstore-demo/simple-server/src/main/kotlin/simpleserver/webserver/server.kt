@@ -16,11 +16,15 @@ import io.ktor.client.features.logging.Logging
 import io.ktor.features.CORS
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
-import io.ktor.http.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.defaultResource
 import io.ktor.http.content.static
 import io.ktor.jackson.jackson
 import io.ktor.locations.Locations
+import io.ktor.request.header
 import io.ktor.request.path
 import io.ktor.request.receive
 import io.ktor.response.respond
@@ -29,6 +33,9 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import org.slf4j.event.Level
+import simpleserver.domaindb.ProductGroupsFound
+import simpleserver.domaindb.ProductGroupsNotFound
+import simpleserver.domaindb.getProductGroups
 import simpleserver.userdb.NewUser
 import simpleserver.userdb.UserAddError
 import simpleserver.userdb.addUser
@@ -57,7 +64,7 @@ data class LoginPostData(
 )
 
 
-private fun getStatusCode(response: Map<String, String>): HttpStatusCode {
+private fun getStatusCode(response: Map<String, Any>): HttpStatusCode {
     return if (response["ret"] == "ok") HttpStatusCode.OK else HttpStatusCode.BadRequest
 }
 
@@ -68,7 +75,8 @@ private fun handleSigning(params: SigninParamsResult): Map<String, String> {
     val ret = when (params) {
         is SigninParamsResultNotFound -> mapOf("ret" to "failed", "msg" to "Validation failed - some fields were empty")
         is SigninParamsResultFound -> {
-            when (val newUser = addUser(params.data.email, params.data.firstName, params.data.lastName, params.data.password)) {
+            when (val newUser =
+                addUser(params.data.email, params.data.firstName, params.data.lastName, params.data.password)) {
                 is NewUser -> mapOf("ret" to "ok", "email" to newUser.data.email)
                 is UserAddError -> mapOf("ret" to "failed", "msg" to newUser.msg)
             }
@@ -84,12 +92,37 @@ private fun handleLogin(params: LoginParamsResult): Map<String, String> {
         is LoginParamsResultNotFound -> mapOf("ret" to "failed", "msg" to "Validation failed - some fields were empty")
         is LoginParamsResultFound -> {
             when (val credentialsOk = checkCredentials(params.data.email, params.data.password)) {
-                false -> mapOf("ret" to "failed", "msg" to "Credentials are not good - either email or password is not correct")
+                false -> mapOf(
+                    "ret" to "failed",
+                    "msg" to "Credentials are not good - either email or password is not correct"
+                )
                 true -> {
                     val jwt = createJsonWebToken(params.data.email)
                     mapOf("ret" to "ok", "msg" to "Credentials ok", "json-web-token" to jwt)
                 }
             }
+        }
+    }
+    logger.debug(L_EXIT)
+    return ret
+}
+
+
+private fun handleProductGroups(token: ValidatedJwtResult): Map<String, Any> {
+    logger.debug(L_ENTER)
+    val productGroups = getProductGroups()
+    val ret = when (token) {
+        is ValidatedJwtNotFound -> mapOf("ret" to "failed", "msg" to token.msg)
+        is ValidatedJwtFound -> {
+            when (productGroups) {
+                is ProductGroupsNotFound -> mapOf(
+                    "ret" to "failed", "msg" to "Internal error: Product groups not found"
+                )
+                is ProductGroupsFound -> {
+                    mapOf("ret" to "ok", "product-groups" to productGroups.data)
+                }
+            }
+
         }
     }
     logger.debug(L_EXIT)
@@ -120,8 +153,11 @@ fun Application.main() {
         anyHost()
     }
 
-    install(Authentication) {
-    }
+    // NOTE: You should use Ktor's internal authentication.
+    // The reason I didn't use in this exercise is that I mostly just implemented the session handling
+    // manually as in previous exercises.
+//    install(Authentication) {
+//    }
 
     install(ContentNegotiation) {
         jackson {
@@ -185,6 +221,15 @@ fun Application.main() {
             call.respond(statusCode, response)
             logger.debug(L_EXIT)
         }
+        get("/product-groups") {
+            logger.debug(L_ENTER)
+            val token = validateJsonWebToken(call.request.header(HttpHeaders.Authorization))
+            val response = handleProductGroups(token)
+            val statusCode = getStatusCode(response)
+            call.respond(statusCode, response)
+            logger.debug(L_EXIT)
+        }
+
 
     }
 }

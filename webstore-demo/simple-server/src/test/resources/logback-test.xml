@@ -38,5 +38,6 @@
         <appender-ref ref="FILE"/>
     </logger>
 
+  <logger name="org.eclipse.jetty" level="WARN"/>
 
 </configuration>
