@@ -1,5 +1,6 @@
 package simpleserver.webserver
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
 import io.ktor.application.Application
@@ -18,6 +19,7 @@ import simpleserver.userdb.initializeUserDb
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class ServerTest {
@@ -209,6 +211,7 @@ class ServerTest {
     }
 
 
+    // TODO: Refactor the jwt handling in test cases into common utility function.
     @Test
     fun getProductGroupsTest() {
         logger.debug(L_ENTER)
@@ -218,8 +221,8 @@ class ServerTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
                 setBody("""{"email":"kari.karttinen@foo.com", "password": "Kari"}""")
             }
-            val resultMap = Gson().fromJson(jwtReq.response.content, Map::class.java)
-            val jwt = resultMap["json-web-token"] as String
+            val jwtResultMap = Gson().fromJson(jwtReq.response.content, Map::class.java)
+            val jwt = jwtResultMap["json-web-token"] as String
             val encodedJwt = Base64.getEncoder().encodeToString(jwt.toByteArray())
 
             handleRequest(HttpMethod.Get, "/product-groups") {
@@ -239,6 +242,39 @@ class ServerTest {
                         )
                     ), mapper.readTree(response.content)
                 )
+            }
+            logger.debug(L_EXIT)
+        }
+    }
+
+    @Test
+    fun getProductsTest() {
+        logger.debug(L_ENTER)
+        withTestApplication(Application::main) {
+            val jwtReq = handleRequest(HttpMethod.Post, "/login") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                setBody("""{"email":"kari.karttinen@foo.com", "password": "Kari"}""")
+            }
+            val jwtResultMap = Gson().fromJson(jwtReq.response.content, Map::class.java)
+            val jwt = jwtResultMap["json-web-token"] as String
+            val encodedJwt = Base64.getEncoder().encodeToString(jwt.toByteArray())
+
+            handleRequest(HttpMethod.Get, "/products/1") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                addHeader(HttpHeaders.Authorization, "Basic $encodedJwt")
+            }.apply {
+                assertEquals(200, response.status()?.value)
+                val resultMap = Gson().fromJson(response.content, Map::class.java)
+                assertEquals("ok", resultMap["ret"])
+                assertEquals("1", resultMap["pg-id"])
+                assertEquals(35, (resultMap["products"] as ArrayList<*>).size)
+                val firstBook = (resultMap["products"] as ArrayList<*>)[0]
+                assertEquals("2001", (firstBook as ArrayList<String>)[0])
+                assertEquals("1", (firstBook as ArrayList<String>)[1])
+                assertEquals("Kalevala", (firstBook as ArrayList<String>)[2])
+                assertEquals("3.95", (firstBook as ArrayList<String>)[3])
             }
             logger.debug(L_EXIT)
         }

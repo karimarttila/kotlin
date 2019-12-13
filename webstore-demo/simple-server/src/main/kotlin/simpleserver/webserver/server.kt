@@ -33,15 +33,14 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import org.slf4j.event.Level
-import simpleserver.domaindb.ProductGroupsFound
-import simpleserver.domaindb.ProductGroupsNotFound
-import simpleserver.domaindb.getProductGroups
+import simpleserver.domaindb.*
 import simpleserver.userdb.NewUser
 import simpleserver.userdb.UserAddError
 import simpleserver.userdb.addUser
 import simpleserver.userdb.checkCredentials
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
+import java.lang.NumberFormatException
 
 sealed class SigninParamsResult
 data class SigninParamsResultFound(val data: SigninPostData) : SigninParamsResult()
@@ -107,13 +106,12 @@ private fun handleLogin(params: LoginParamsResult): Map<String, String> {
     return ret
 }
 
-
 private fun handleProductGroups(token: ValidatedJwtResult): Map<String, Any> {
     logger.debug(L_ENTER)
-    val productGroups = getProductGroups()
     val ret = when (token) {
         is ValidatedJwtNotFound -> mapOf("ret" to "failed", "msg" to token.msg)
         is ValidatedJwtFound -> {
+            val productGroups = getProductGroups()
             when (productGroups) {
                 is ProductGroupsNotFound -> mapOf(
                     "ret" to "failed", "msg" to "Internal error: Product groups not found"
@@ -122,7 +120,29 @@ private fun handleProductGroups(token: ValidatedJwtResult): Map<String, Any> {
                     mapOf("ret" to "ok", "product-groups" to productGroups.data)
                 }
             }
+        }
+    }
+    logger.debug(L_EXIT)
+    return ret
+}
 
+private fun handleProducts(token: ValidatedJwtResult, pgId: String?): Map<String, Any> {
+    logger.debug(L_ENTER)
+    val ret = when (token) {
+        is ValidatedJwtNotFound -> mapOf("ret" to "failed", "msg" to token.msg)
+        is ValidatedJwtFound -> {
+            val products = if (pgId == null) ProductsNotFound
+            else try { getProducts(pgId.toInt())} catch (e: NumberFormatException) {ProductsNotFound}
+            when (products) {
+                is ProductsNotFound -> mapOf(
+                    "ret" to "failed", "msg" to "Products not found for product group: $pgId"
+                )
+                is ProductsFound -> {
+                    val productsList = products.data.map { listOf(it.pId.toString(), it.pgId.toString(), it.title, it.price.toString()) }
+                    // pgId cannot be null here, compiler misses the check above.
+                    mapOf("ret" to "ok", "pg-id" to pgId!!, "products" to productsList)
+                }
+            }
         }
     }
     logger.debug(L_EXIT)
@@ -156,8 +176,8 @@ fun Application.main() {
     // NOTE: You should use Ktor's internal authentication.
     // The reason I didn't use in this exercise is that I mostly just implemented the session handling
     // manually as in previous exercises.
-//    install(Authentication) {
-//    }
+    //    install(Authentication) {
+    //    }
 
     install(ContentNegotiation) {
         jackson {
@@ -225,6 +245,15 @@ fun Application.main() {
             logger.debug(L_ENTER)
             val token = validateJsonWebToken(call.request.header(HttpHeaders.Authorization))
             val response = handleProductGroups(token)
+            val statusCode = getStatusCode(response)
+            call.respond(statusCode, response)
+            logger.debug(L_EXIT)
+        }
+        get("/products/{pgId}") {
+            logger.debug(L_ENTER)
+            val pgId = call.parameters["pgId"]
+            val token = validateJsonWebToken(call.request.header(HttpHeaders.Authorization))
+            val response = handleProducts(token, pgId)
             val statusCode = getStatusCode(response)
             call.respond(statusCode, response)
             logger.debug(L_EXIT)
