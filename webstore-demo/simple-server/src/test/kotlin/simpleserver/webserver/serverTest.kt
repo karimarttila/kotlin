@@ -280,4 +280,35 @@ class ServerTest {
         }
     }
 
+    @Test
+    fun getProductTest() {
+        logger.debug(L_ENTER)
+        withTestApplication(Application::main) {
+            val jwtReq = handleRequest(HttpMethod.Post, "/login") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                setBody("""{"email":"kari.karttinen@foo.com", "password": "Kari"}""")
+            }
+            val jwtResultMap = Gson().fromJson(jwtReq.response.content, Map::class.java)
+            val jwt = jwtResultMap["json-web-token"] as String
+            val encodedJwt = Base64.getEncoder().encodeToString(jwt.toByteArray())
+
+            handleRequest(HttpMethod.Get, "/product/2/49") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                addHeader(HttpHeaders.Authorization, "Basic $encodedJwt")
+            }.apply {
+                assertEquals(200, response.status()?.value)
+                val resultMap = Gson().fromJson(response.content, Map::class.java)
+                assertEquals("ok", resultMap["ret"])
+                assertEquals("2", resultMap["pg-id"])
+                assertEquals("49", resultMap["p-id"])
+                assertEquals(8, (resultMap["product"] as ArrayList<*>).size)
+                // What a coincidence! The chosen movie is the best western of all times!
+                assertEquals("Once Upon a Time in the West", (resultMap["product"] as ArrayList<String>)[2])
+            }
+            logger.debug(L_EXIT)
+        }
+    }
+
 }

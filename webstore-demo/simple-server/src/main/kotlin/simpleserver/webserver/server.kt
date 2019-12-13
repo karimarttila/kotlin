@@ -6,7 +6,6 @@ import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.auth.Authentication
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.jetty.Jetty
 import io.ktor.client.features.json.GsonSerializer
@@ -40,7 +39,6 @@ import simpleserver.userdb.addUser
 import simpleserver.userdb.checkCredentials
 import simpleserver.util.L_ENTER
 import simpleserver.util.L_EXIT
-import java.lang.NumberFormatException
 
 sealed class SigninParamsResult
 data class SigninParamsResultFound(val data: SigninPostData) : SigninParamsResult()
@@ -132,13 +130,24 @@ private fun handleProducts(token: ValidatedJwtResult, pgId: String?): Map<String
         is ValidatedJwtNotFound -> mapOf("ret" to "failed", "msg" to token.msg)
         is ValidatedJwtFound -> {
             val products = if (pgId == null) ProductsNotFound
-            else try { getProducts(pgId.toInt())} catch (e: NumberFormatException) {ProductsNotFound}
+            else try {
+                getProducts(pgId.toInt())
+            } catch (e: NumberFormatException) {
+                ProductsNotFound
+            }
             when (products) {
                 is ProductsNotFound -> mapOf(
                     "ret" to "failed", "msg" to "Products not found for product group: $pgId"
                 )
                 is ProductsFound -> {
-                    val productsList = products.data.map { listOf(it.pId.toString(), it.pgId.toString(), it.title, it.price.toString()) }
+                    val productsList = products.data.map {
+                        listOf(
+                            it.pId.toString(),
+                            it.pgId.toString(),
+                            it.title,
+                            it.price.toString()
+                        )
+                    }
                     // pgId cannot be null here, compiler misses the check above.
                     mapOf("ret" to "ok", "pg-id" to pgId!!, "products" to productsList)
                 }
@@ -149,6 +158,43 @@ private fun handleProducts(token: ValidatedJwtResult, pgId: String?): Map<String
     return ret
 }
 
+private fun handleProduct(token: ValidatedJwtResult, pgId: String?, pId: String?): Map<String, Any> {
+    logger.debug(L_ENTER)
+    val ret = when (token) {
+        is ValidatedJwtNotFound -> mapOf("ret" to "failed", "msg" to token.msg)
+        is ValidatedJwtFound -> {
+            val product = when {
+                pgId == null || pId == null -> ProductNotFound
+                else -> {
+                    try {
+                        getProduct(pgId.toInt(), pId.toInt())
+                    } catch (e: java.lang.NumberFormatException) {
+                        ProductNotFound
+                    }
+                }
+            }
+            when (product) {
+                is ProductNotFound -> mapOf(
+                    "ret" to "failed", "msg" to "Product not found for product group: $pgId and product id: $pId"
+                )
+                is ProductFound -> mapOf(
+                    "ret" to "ok", "pg-id" to pgId!!, "p-id" to pId!!, "product" to listOf(
+                        product.data.pId.toString(),
+                        product.data.pgId.toString(),
+                        product.data.title,
+                        product.data.price.toString(),
+                        product.data.authorOrDirector,
+                        product.data.year.toString(),
+                        product.data.country,
+                        product.data.genreOrLanguage
+                    )
+                )
+            }
+        }
+    }
+    logger.debug(L_EXIT)
+    return ret
+}
 
 @Suppress("unused")
 @kotlin.jvm.JvmOverloads
@@ -169,7 +215,10 @@ fun Application.main() {
         method(HttpMethod.Put)
         method(HttpMethod.Delete)
         header(HttpHeaders.Authorization)
-        allowCredentials = true
+        header(HttpHeaders.AccessControlAllowHeaders)
+        header(HttpHeaders.AccessControlAllowOrigin)
+        header(HttpHeaders.ContentType)
+        //allowCredentials = true
         anyHost()
     }
 
@@ -178,6 +227,7 @@ fun Application.main() {
     // manually as in previous exercises.
     //    install(Authentication) {
     //    }
+
 
     install(ContentNegotiation) {
         jackson {
@@ -198,7 +248,10 @@ fun Application.main() {
         // http://localhost:5065/info
         get("/info") {
             logger.debug(L_ENTER)
-            call.respondText("""{"info":"index.html => Info in HTML format"}""", contentType = ContentType.Text.Plain)
+            call.respondText(
+                """{"info":"index.html => Info in HTML format"}""",
+                contentType = ContentType.Text.Plain
+            )
             logger.debug(L_EXIT)
         }
         // http://localhost:5065/
@@ -258,8 +311,16 @@ fun Application.main() {
             call.respond(statusCode, response)
             logger.debug(L_EXIT)
         }
-
-
+        get("/product/{pgId}/{pId}") {
+            logger.debug(L_ENTER)
+            val pgId = call.parameters["pgId"]
+            val pId = call.parameters["pId"]
+            val token = validateJsonWebToken(call.request.header(HttpHeaders.Authorization))
+            val response = handleProduct(token, pgId, pId)
+            val statusCode = getStatusCode(response)
+            call.respond(statusCode, response)
+            logger.debug(L_EXIT)
+        }
     }
 }
 
