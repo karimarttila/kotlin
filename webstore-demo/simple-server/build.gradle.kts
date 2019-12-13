@@ -13,7 +13,6 @@ val hamcrestVersion = "2.1"
 val logbackVersion = "1.2.3"
 val opencsvVersion = "4.6"
 val commonsCodecVersion = "1.11"
-val jvmTarget = "1.8"
 val jjwtVersion = "0.10.7"
 
 plugins {
@@ -80,7 +79,7 @@ configure<IdeaModel> {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = jvmTarget
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
 }
 
 tasks.withType(Wrapper::class.java).configureEach {
