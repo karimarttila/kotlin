@@ -19,7 +19,7 @@
 
 # Introduction
 
-This Kotlin version of my exercise server "Simple Server" is now the sixth language that I have used to implement the same server as an exercise (previous implementations: Clojure, Javascript, Java, Python and Go, see: my Medium blog post regarding these exercises: [Five Languages — Five Stories](https://medium.com/@kari.marttila/five-languages-five-stories-1afd7b0b583f)). I have written a new blog post regarding this Kotlin exercise: [TODO]().
+This Kotlin version of my exercise server "Simple Server" is now the sixth language that I have used to implement the same server as an exercise (previous implementations: Clojure, Javascript, Java, Python and Go, see: my Medium blog post regarding these exercises: [Five Languages — Five Stories](https://medium.com/@kari.marttila/five-languages-five-stories-1afd7b0b583f)). I have written a new blog post regarding this Kotlin exercise: [Kotlin — Much More Than Just a Better Java](https://medium.com/@kari.marttila/kotlin-much-more-than-just-a-better-java-883b1b625220).
 
 In this README.md document (and in the above mentioned Medium blog post) I document the implementation details of this Kotlin exercise and also some observations regarding Kotlin as a backend language.
 
